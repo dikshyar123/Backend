@@ -47,7 +47,7 @@ const deleteblog = async (req, res)=>{
     const data = await blogModel.findByIdAndDelete(id);
     return res.status(200).json({
         message : "blog deleted",
-        data:data,
+        
     })
 }
 

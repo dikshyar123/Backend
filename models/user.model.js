@@ -17,8 +17,21 @@ const userSchema = new mongoose.Schema({
     password:{
         type: String,
         require: true,
+    },
+    isVerified:{
+         type: Boolean,
+         default: false
+    },
+    otp:{
+        type:Number,
+
+    },
+    otpExpires:{
+        type:Date
     }
     
+}, {
+    timestamps: true
 });
 const userModel = mongoose.model("User", userSchema);
 

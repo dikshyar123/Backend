@@ -2,11 +2,13 @@ const { userModel } = require("../models/user.model");
 // yo chai pw hash garna ko lagi 
 const bcrypt = require("bcrypt");
 const { generateToken } = require("../utils/generateToken");
+const { emailConfig } = require("../utils/emailconfig");
 
 // signup 
 const register = async (req, res)=>{
     const { name, phone, email, password }= req.body;
     if (!name || !phone ||!email || !password){
+      
         return res.status(400).json({
             message:"all field are required"
         })
@@ -23,17 +25,52 @@ const register = async (req, res)=>{
             })
         }
 
+
+    // yo chai otp ko code ho jasma js use garya cha math garera number lai strinf ma convert farera 
+    const otp = Math.floor(Math.random() * 100000);
+    const otpcheck = otp.toString().padEnd(5,"0");
     const data = await userModel.create ({
         name: name,
         phone: phone,
         email: email, 
         password: encryptpassword,
+        otp: otpcheck,
+        otpExpires: Date.now() + 5 * 60 * 1000,
+    
     
     });
+    await emailConfig(email, otpcheck)
     return res.status(200).json({
         message:"done!!"
     })
     
+}
+// yo chai otp ko code ho 
+const otpVerify = async (req, res)=>{
+  const {otp} =req.body;
+  console.log(otp);
+  if (!otp){
+    return res.status(400).json({
+      message:"Otp is required.",
+    })
+  }
+  const user=await userModel.findOne({otp:otp})
+  if(!user){
+    return res.status(400).json({
+      message:"Otp is not correct."
+    })
+  }
+  if (user.otpExpires<Date.now()){
+    return res.status(400).json({
+      message:"Otp is expiry."
+    })
+  }
+  // yo chai otp kina null rakhya bhanya chai kina ki tyo verify bhayo tesaile expire date ni null gareko aba na chahine bhayera
+  user.isVerified=true
+  user.otp=null
+  user.otpExpires=null
+  await user.save()
+  return res.status(200).json({message:'your account is verified'})
 }
 //  yo chai login ko code ho 
 const loginUser = async(req, res)=>{
@@ -94,4 +131,4 @@ const myInfo = async (req, res)=>{
 
 
 
-module.exports= {register,loginUser,MyUser,myInfo};
+module.exports= {register,loginUser,MyUser,myInfo,otpVerify};

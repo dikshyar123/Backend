@@ -100,6 +100,11 @@ const loginUser = async(req, res)=>{
           message: "password not correct.",
         });
       }
+      if (!existinguser.isVerified){
+        return res.status(400).json({
+          message: "Please verify your account.",
+        });
+      }
       const token=generateToken(existinguser._id);
       const showdata= await userModel.findById(existinguser._id).select("-password")
 
